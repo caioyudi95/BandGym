@@ -1,0 +1,35 @@
+rules_version = '2';
+// BandGym · regras de segurança do Firestore
+// Só entra quem fez login com Google E está na lista acesso/lista.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function meuEmail() { return request.auth.token.email.lower(); }
+    function lista() { return get(/databases/$(database)/documents/acesso/lista).data; }
+    function existeLista() { return exists(/databases/$(database)/documents/acesso/lista); }
+    function admin() { return logado() && existeLista() && meuEmail() in lista().admins; }
+    function membro() { return logado() && existeLista() && (meuEmail() in lista().emails || meuEmail() in lista().admins); }
+
+    // Lista de quem tem acesso
+    match /acesso/lista {
+      allow read: if logado();
+      // Primeiro acesso: a primeira pessoa vira administradora (só ela mesma na lista)
+      allow create: if logado() && !existeLista()
+                    && request.resource.data.admins == [meuEmail()]
+                    && request.resource.data.emails == [];
+      allow update, delete: if admin();
+    }
+
+    // Dados do BandGym
+    match /profs/{id}   { allow read, write: if membro(); }
+    match /pessoas/{id} { allow read, write: if membro(); }
+    match /dias/{id}    { allow read, write: if membro(); }
+    match /config/{id}  { allow read, write: if membro(); }
+
+    // Todo o resto: bloqueado
+    match /{document=**} { allow read, write: if false; }
+  }
+}
