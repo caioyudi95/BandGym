@@ -1,15 +1,11 @@
-// ============================================================
-//  BandGym · configuração do Firebase
-//  Cole aqui o bloco "firebaseConfig" do seu projeto
-//  (Console do Firebase → ⚙ Configurações do projeto → Seus apps → Web).
-//  Esses dados NÃO são senha: podem ficar no site normalmente.
-//  A segurança vem das regras (firestore.rules) e do login.
-// ============================================================
+// BandGym · configuração do Firebase (projeto bandgym-8af69)
+// Esses dados não são senha: a segurança vem das regras (firestore.rules) e do login.
 export const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI.firebaseapp.com",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI.appspot.com",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
+  apiKey: "AIzaSyB_GeAhHITT78Ir8ogQF9LgvdAr2cmx-ak",
+  authDomain: "bandgym-8af69.firebaseapp.com",
+  projectId: "bandgym-8af69",
+  storageBucket: "bandgym-8af69.firebasestorage.app",
+  messagingSenderId: "601824184851",
+  appId: "1:601824184851:web:ecaccd6a37e5d2823d8de6",
+  measurementId: "G-4BZHHNR721"
 };
