@@ -11,7 +11,14 @@ service cloud.firestore {
     function lista() { return get(/databases/$(database)/documents/acesso/lista).data; }
     function existeLista() { return exists(/databases/$(database)/documents/acesso/lista); }
     function admin() { return logado() && existeLista() && meuEmail() in lista().admins; }
-    function membro() { return logado() && existeLista() && (meuEmail() in lista().emails || meuEmail() in lista().admins); }
+    function membro() {
+      return logado() && existeLista() && (meuEmail() in lista().emails || meuEmail() in lista().admins
+        || exists(/databases/$(database)/documents/membros/$(meuEmail())));
+    }
+    function codigoCerto() {
+      return exists(/databases/$(database)/documents/acesso/codigo)
+        && request.resource.data.codigo == get(/databases/$(database)/documents/acesso/codigo).data.valor;
+    }
 
     // Lista de quem tem acesso
     match /acesso/lista {
@@ -21,6 +28,18 @@ service cloud.firestore {
                     && request.resource.data.admins == [meuEmail()]
                     && request.resource.data.emails == [];
       allow update, delete: if admin();
+    }
+
+    // Código de acesso da academia: só o admin vê e troca
+    match /acesso/codigo { allow read, write: if admin(); }
+
+    // Professores que se cadastraram com o código (entram sozinhos)
+    match /membros/{email} {
+      allow create: if logado() && email == meuEmail() && codigoCerto()
+                    && request.resource.data.email == meuEmail()
+                    && request.resource.data.keys().hasOnly(['email', 'nome', 'codigo', 'em']);
+      allow read: if logado() && (email == meuEmail() || admin());
+      allow delete: if admin();
     }
 
     // Dados do BandGym

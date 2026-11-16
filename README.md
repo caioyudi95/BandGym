@@ -19,7 +19,7 @@ Arquivos deste pacote:
    - Local: **southamerica-east1 (São Paulo)**
    - Modo: **produção** → Criar.
 3. **Regras de segurança**: ainda no Firestore, aba **Regras** → apague tudo → cole o conteúdo do arquivo `firestore.rules` → **Publicar**.
-4. **Login com Google**: menu **Criação → Authentication → Vamos começar → Google** → ativar → escolha o e-mail de suporte → **Salvar**.
+4. **Login**: menu **Criação → Authentication → Método de login** → ative **Google** (escolha o e-mail de suporte) e também **E-mail/senha** → **Salvar**.
 5. **Registrar o site**: ⚙ **Configurações do projeto → Geral → Seus apps → ícone `</>` (Web)** → apelido `bandgym-web` → **Registrar app** (não precisa marcar Hosting).
 6. Copie o bloco `firebaseConfig` que aparece e cole no arquivo **`firebase-config.js`**, substituindo os `COLE_AQUI`. Fica assim:
 
@@ -61,7 +61,8 @@ vercel --prod
 2. Abra o site → **Entrar com Google** com a **sua** conta.
 3. Vai aparecer **“Primeiro acesso”** → clique em **Sou o responsável · ativar**. Você vira o administrador.
    > Faça isso logo após publicar: a primeira conta a ativar vira a administradora.
-4. Em **Configurações → Acesso**, libere o e-mail Google de cada professor (Professor ou Administrador).
+4. Em **Configurações → Acesso**, defina o **código de acesso da academia** (ou clique em Gerar) e salve.
+5. Passe o link + o código para os professores: eles clicam em **Criar conta** (ou entram com Google), confirmam o e-mail, digitam o código e entram sozinhos. Para tirar alguém, use a lixeira na lista de professores. Trocar o código não tira quem já entrou.
 
 Pronto: qualquer computador com login liberado vê e registra os mesmos check-ins em tempo real.
 
@@ -75,7 +76,8 @@ Na nova (Firebase): **Configurações → Importar backup**.
 ## Dúvidas comuns
 
 - **“Este endereço ainda não está autorizado”** → faltou o passo 3.1 (domínio autorizado).
-- **“A conta X ainda não tem acesso”** → um administrador precisa liberar o e-mail em Configurações → Acesso.
+- **“Código incorreto”** → confira o código em Configurações → Acesso (o admin precisa ter salvo um código).
+- **Não chegou o e-mail de confirmação** → olhe o spam ou use “Reenviar e-mail”.
 - **“Falta configurar o Firebase”** → o `firebase-config.js` ainda está com `COLE_AQUI`.
 - **Custo** → o plano gratuito (Spark) do Firebase e o plano Hobby da Vercel cobrem o uso de uma academia escolar.
 - **Internet caiu** → o que já foi carregado continua na tela; novas entradas precisam de conexão para salvar.

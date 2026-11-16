@@ -427,7 +427,13 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
           <div id="cfg-acesso" hidden>
             <h2>Acesso</h2><p class="hint" id="acc-me"></p>
             <div id="acc-admin" hidden>
-              <p class="hint">Somente os e-mails desta lista entram no sistema (login com Google).</p>
+              <div class="f" style="margin-bottom:16px"><span class="lt" style="font-weight:700;font-size:13.5px">Código de acesso da academia</span>
+                <p class="hint" style="margin:4px 0 8px">Professores criam a conta (Google ou e-mail e senha), digitam este código e entram sozinhos. Troque o código quando quiser: quem já entrou continua com acesso.</p>
+                <div class="row"><input class="in" id="acc-cod" placeholder="Ex: BANDGYM2026" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700"><button class="btn sm" id="acc-cod-gen">🎲 Gerar</button><button class="btn red sm" id="acc-cod-save">Salvar código</button></div>
+                <div class="faint" id="acc-cod-st" style="font-size:12.5px;margin-top:6px"></div>
+              </div>
+              <div id="acc-mem"></div>
+              <p class="hint" style="margin-top:14px">Acesso direto (sem código) e administradores:</p>
               <div id="acc-list"></div>
               <div class="row" style="margin-top:12px"><input class="in" id="acc-email" type="email" placeholder="professor@gmail.com" style="flex:1;min-width:200px"><select class="in" id="acc-nivel" style="width:auto"><option value="emails">Professor</option><option value="admins">Administrador</option></select><button class="btn red sm" id="acc-add">Liberar acesso</button></div>
             </div>
@@ -1277,9 +1283,19 @@ function renderAcesso() {
   $('#acc-admin').hidden = !EXT.isAdmin;
   if (!EXT.isAdmin) return;
   const L = EXT.acesso || { admins: [], emails: [] };
+  if (document.activeElement !== $('#acc-cod')) $('#acc-cod').value = EXT.codigo || '';
+  $('#acc-cod-st').textContent = EXT.codigo ? 'Código ativo.' : '⚠ Nenhum código definido: ninguém consegue se cadastrar sozinho ainda.';
+  const mem = EXT.membros || [];
+  $('#acc-mem').innerHTML = `<p class="hint" style="margin:0 0 4px">Professores que entraram com o código: <b>${mem.length}</b></p>` + mem.map(x => `<div class="acc-row"><div style="flex:1"><b>${esc(x.nome || '—')}</b><div class="addr">${esc(x.email)}</div></div><span class="faint" style="font-size:12px">${x.em ? fmtD(iso(new Date(x.em))) : ''}</span><button class="iconbtn" data-memdel="${esc(x.email)}" title="Remover acesso">${ICON_DEL}</button></div>`).join('');
   const rows = [...(L.admins || []).map(e => [e, 'admins']), ...(L.emails || []).map(e => [e, 'emails'])];
   $('#acc-list').innerHTML = rows.map(([e, k]) => `<div class="acc-row"><span class="addr" style="flex:1">${esc(e)}</span><span class="tag ${k === 'admins' ? 'red' : ''}">${k === 'admins' ? 'ADMIN' : 'PROFESSOR'}</span>${e === EXT.user.email ? '<span class="faint" style="font-size:12px">você</span>' : `<button class="iconbtn" data-accdel="${esc(e)}" title="Remover acesso">${ICON_DEL}</button>`}</div>`).join('');
 }
+$('#acc-cod-gen').addEventListener('click', () => { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = 'BAND-'; const a = crypto.getRandomValues(new Uint8Array(6)); a.forEach(x => r += c[x % c.length]); $('#acc-cod').value = r; });
+$('#acc-cod-save').addEventListener('click', async () => {
+  const v = $('#acc-cod').value.trim().toUpperCase().replace(/\s+/g, '');
+  if (v.length < 6) { toast('Use um código com pelo menos 6 caracteres.', 'err'); return; }
+  if (await dbSet('acesso/codigo', { valor: v, em: Date.now() })) toast(`Código <b>${esc(v)}</b> salvo. Passe para os professores.`);
+});
 async function saveAcesso(L) { L.admins = [...new Set(L.admins)]; L.emails = [...new Set(L.emails.filter(e => !L.admins.includes(e)))]; return dbSet('acesso/lista', L); }
 $('#acc-add').addEventListener('click', async () => {
   const e = $('#acc-email').value.trim().toLowerCase(); const k = $('#acc-nivel').value;
@@ -1289,6 +1305,8 @@ $('#acc-add').addEventListener('click', async () => {
   if (await saveAcesso(L)) { toast(`Acesso liberado para <b>${esc(e)}</b>.`); $('#acc-email').value = ''; }
 });
 document.addEventListener('click', async ev => {
+  const md = ev.target.closest('[data-memdel]');
+  if (md) { const e = md.dataset.memdel; if (await confirmModal(`Remover o acesso de <b>${esc(e)}</b>? Para voltar, a pessoa precisará do código atual.`, 'Remover')) { if (await dbDel('membros/' + e)) toast('Acesso removido.'); } return; }
   const b = ev.target.closest('[data-accdel]'); if (!b) return;
   const e = b.dataset.accdel;
   if (!(await confirmModal(`Remover o acesso de <b>${esc(e)}</b>?`, 'Remover'))) return;
