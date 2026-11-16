@@ -1,15 +1,17 @@
 rules_version = '2';
 // BandGym · regras de segurança do Firestore
-// Só entra quem fez login com Google E está na lista acesso/lista.
+// - Só entra quem fez login (e-mail confirmado) e está liberado (lista ou código de acesso)
+// - Toda gravação é assinada (_por = quem fez, _em = hora do servidor) e precisa vir junto
+//   com uma linha nova no histórico, que ninguém edita nem apaga
+// - Só administradores apagam; professores removem no máximo 1 check-in por vez
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function logado() {
-      return request.auth != null && request.auth.token.email_verified == true;
-    }
+    function logado() { return request.auth != null && request.auth.token.email_verified == true; }
     function meuEmail() { return request.auth.token.email.lower(); }
-    function lista() { return get(/databases/$(database)/documents/acesso/lista).data; }
-    function existeLista() { return exists(/databases/$(database)/documents/acesso/lista); }
+    function caminhoLista() { return /databases/$(database)/documents/acesso/lista; }
+    function existeLista() { return exists(caminhoLista()); }
+    function lista() { return get(caminhoLista()).data; }
     function admin() { return logado() && existeLista() && meuEmail() in lista().admins; }
     function membro() {
       return logado() && existeLista() && (meuEmail() in lista().emails || meuEmail() in lista().admins
@@ -19,6 +21,17 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/acesso/codigo)
         && request.resource.data.codigo == get(/databases/$(database)/documents/acesso/codigo).data.valor;
     }
+    // Gravação assinada + linha de histórico nova criada na mesma operação
+    function assinado(caminho) {
+      let d = request.resource.data;
+      let h = /databases/$(database)/documents/historico/$(d._log);
+      return d._por == meuEmail() && d._em == request.time && d._log is string
+        && !exists(h) && existsAfter(h) && getAfter(h).data.caminho == caminho;
+    }
+    function naoExcluido() {
+      return request.resource.data.get('_excluido', false) != true
+        && (resource == null || resource.data.get('_excluido', false) != true);
+    }
 
     // Lista de quem tem acesso
     match /acesso/lista {
@@ -27,13 +40,17 @@ service cloud.firestore {
       allow create: if logado() && !existeLista()
                     && request.resource.data.admins == [meuEmail()]
                     && request.resource.data.emails == [];
-      allow update, delete: if admin();
+      allow update: if admin() && assinado('acesso/lista');
+      allow delete: if false;
     }
 
     // Código de acesso da academia: só o admin vê e troca
-    match /acesso/codigo { allow read, write: if admin(); }
+    match /acesso/codigo {
+      allow read: if admin();
+      allow create, update: if admin() && assinado('acesso/codigo');
+    }
 
-    // Professores que se cadastraram com o código (entram sozinhos)
+    // Professores que entraram com o código
     match /membros/{email} {
       allow create: if logado() && email == meuEmail() && codigoCerto()
                     && request.resource.data.email == meuEmail()
@@ -42,11 +59,41 @@ service cloud.firestore {
       allow delete: if admin();
     }
 
-    // Dados do BandGym
-    match /profs/{id}   { allow read, write: if membro(); }
-    match /pessoas/{id} { allow read, write: if membro(); }
-    match /dias/{id}    { allow read, write: if membro(); }
-    match /config/{id}  { allow read, write: if membro(); }
+    // Histórico: todos os membros escrevem (só linhas novas e assinadas); só admin lê; ninguém edita/apaga
+    match /historico/{id} {
+      allow create: if membro() && request.resource.data._por == meuEmail() && request.resource.data._em == request.time
+                    && request.resource.data.caminho is string && request.resource.data.acao is string;
+      allow read: if admin();
+      allow update, delete: if false;
+    }
+
+    // Cadastros e professores: professor cria/edita; só admin manda para a lixeira ou restaura
+    match /pessoas/{id} {
+      allow read: if membro();
+      allow create, update: if membro() && assinado('pessoas/' + id) && (admin() || naoExcluido());
+      allow delete: if admin();
+    }
+    match /profs/{id} {
+      allow read: if membro();
+      allow create, update: if membro() && assinado('profs/' + id) && (admin() || naoExcluido());
+      allow delete: if admin();
+    }
+
+    // Check-ins do dia: professor remove no máximo 1 por gravação; só admin apaga o dia
+    match /dias/{id} {
+      allow read: if membro();
+      allow create: if membro() && assinado('dias/' + id) && request.resource.data.items is list;
+      allow update: if membro() && assinado('dias/' + id) && request.resource.data.items is list
+                    && (admin() || request.resource.data.items.size() >= resource.data.items.size() - 1);
+      allow delete: if admin();
+    }
+
+    // Configurações gerais
+    match /config/{id} {
+      allow read: if membro();
+      allow create, update: if membro() && assinado('config/' + id);
+      allow delete: if admin();
+    }
 
     // Todo o resto: bloqueado
     match /{document=**} { allow read, write: if false; }

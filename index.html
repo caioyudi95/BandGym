@@ -213,6 +213,7 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
       <button data-v="frequentadores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Frequentadores</span></button>
       <button data-v="professores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></svg><span class="lbl">Professores</span></button>
       <button data-v="emails"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg><span class="lbl">E-mails</span><span class="badge" id="badge-mail" hidden></span></button>
+      <button data-v="historico" id="nav-hist" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg><span class="lbl">Histórico</span></button>
       <button data-v="configuracoes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Configurações</span></button>
     </nav>
     <div class="side-foot">
@@ -406,6 +407,18 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
     </section>
 
     <!-- ================= CONFIGURAÇÕES ================= -->
+    <section class="view" id="v-historico">
+      <div class="top"><div><h1>Histórico</h1><p class="sub">Tudo o que foi feito no sistema, por quem e quando. Ninguém consegue apagar ou editar estes registros.</p></div></div>
+      <div class="filters">
+        <label class="f"><span class="lt">Buscar</span><input class="in" id="hi-q" placeholder="Nome, ação ou e-mail"></label>
+        <label class="f"><span class="lt">Quem</span><select class="in" id="hi-quem"></select></label>
+        <label class="f"><span class="lt">Ação</span><select class="in" id="hi-acao"></select></label>
+        <label class="f"><span class="lt">De</span><input class="in" type="date" id="hi-de"></label>
+        <label class="f"><span class="lt">Até</span><input class="in" type="date" id="hi-ate"></label>
+      </div>
+      <div class="card"><div class="row" style="margin-bottom:12px"><span class="pill" id="hi-count"></span><span class="faint" style="font-size:13px">Mostra as últimas 1.000 ações.</span></div><div class="tbl-wrap" style="max-height:640px" id="hi-table"></div></div>
+    </section>
+
     <section class="view" id="v-configuracoes">
       <div class="top"><div><h1>Configurações</h1><p class="sub">Setores, logo do colégio e backup dos dados.</p></div></div>
       <div class="grid g2" style="align-items:start">
@@ -439,6 +452,7 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
             </div>
             <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
           </div>
+          <div id="cfg-lix" hidden><h2>Lixeira</h2><p class="hint">Cadastros e professores excluídos. Restaure com um clique. Check-ins excluídos são restaurados pelo Histórico.</p><div id="lix-list"></div><hr style="border:0;border-top:1px solid var(--line);margin:22px 0"></div>
           <h2>Backup</h2><p class="hint" id="cfg-mode-txt"></p>
           <div class="row">
             <button class="btn sm" id="cfg-export">⬇ Exportar backup (.json)</button>
@@ -481,7 +495,8 @@ const TAB_ID = 'tab-' + Math.random().toString(36).slice(2, 10);
 const ICON_DEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
 
 /* ====================== Estado ====================== */
-const S = { profs: {}, pessoas: {}, dias: {}, config: null };
+const S = { profs: {}, pessoas: {}, dias: {}, config: null, lix: { pessoas: {}, profs: {} } };
+let HIST = [];
 let MODE = 'loading', DB = null, DL = null, readOnly = false, EXT = null;
 let dataVer = 0;
 const F = { preset: '7d', de: '', ate: '', setor: '', tipo: '', prof: '' };
@@ -572,7 +587,7 @@ function mailto(to, subj, body, bcc) {
 function lsLoad() {
   try {
     const d = JSON.parse(localStorage.getItem(LS_KEY) || 'null');
-    if (d) { S.profs = d.profs || {}; S.pessoas = d.pessoas || {}; S.dias = d.dias || {}; S.config = d.config || null; }
+    if (d) { S.profs = d.profs || {}; S.pessoas = d.pessoas || {}; S.dias = d.dias || {}; S.config = d.config || null; S.lix = d.lix || { pessoas: {}, profs: {} }; }
   } catch (e) { }
 }
 function lsSave() {
@@ -582,7 +597,12 @@ function lsSave() {
 function localApply(path, data) {
   const [col, id] = path.split('/');
   if (col === 'config') S.config = data;
-  else if (S[col]) { if (data === null) delete S[col][id]; else S[col][id] = data; }
+  else if (S[col]) {
+    if (S.lix[col]) delete S.lix[col][id];
+    if (data === null) delete S[col][id];
+    else if (data._excluido && S.lix[col]) { delete S[col][id]; S.lix[col][id] = data; }
+    else S[col][id] = data;
+  }
 }
 
 let wq = Promise.resolve();
@@ -590,17 +610,17 @@ const enqueue = fn => { const p = wq.then(fn, fn); wq = p.catch(() => { }); retu
 
 function dbFail(e) {
   const code = e && e.code;
-  if (code === 'invalid_argument') { readOnly = true; toast('Você não tem permissão para alterar estes dados. Peça acesso de edição ao dono.', 'err'); }
+  if (code === 'invalid_argument') toast(EXT ? 'Sem permissão para esta ação. Excluir cadastros e professores, ou apagar vários registros de uma vez, é só para administradores.' : 'Você não tem permissão para alterar estes dados. Peça acesso de edição ao dono.', 'err');
   else if (code === 'quota_exceeded') toast('O banco de dados está cheio. Exporte um backup e apague registros antigos.', 'err');
   else if (code === 'resource_exhausted') toast('Muitas ações seguidas. Aguarde alguns segundos.', 'warn');
   else toast('Não foi possível salvar agora. Verifique a conexão e tente de novo.', 'err');
   return false;
 }
-async function rawSet(path, data) {
+async function rawSet(path, data, meta) {
   if (MODE !== 'cloud') { localApply(path, data); lsSave(); bump(); return true; }
   for (let i = 0; i < 2; i++) {
     try {
-      if (data === null) await DB.doc(path).delete(); else await DB.doc(path).set(data);
+      if (data === null) await DB.doc(path).delete(meta); else await DB.doc(path).set(data, meta);
       return true;
     } catch (e) {
       if (e && e.code === 'unavailable' && i === 0) { await sleep(300 + Math.random() * 600); continue; }
@@ -609,8 +629,11 @@ async function rawSet(path, data) {
   }
   return false;
 }
-const dbSet = (path, data) => enqueue(() => rawSet(path, data));
-const dbDel = path => enqueue(() => rawSet(path, null));
+const dbSet = (path, data, meta) => enqueue(() => rawSet(path, data, meta));
+const dbDel = (path, meta) => enqueue(() => rawSet(path, null, meta));
+const canDelete = () => !EXT || EXT.isAdmin;
+const tsOf = x => !x ? 0 : typeof x === 'number' ? x : typeof x.toMillis === 'function' ? x.toMillis() : x.seconds ? x.seconds * 1000 : 0;
+const semMeta = o => { const c = clone(o); ['_por', '_em', '_log', '_excluido', '_excluidoEm'].forEach(k => delete c[k]); return c; };
 
 async function lockDay(date) {
   for (let i = 0; i < 16; i++) {
@@ -619,14 +642,14 @@ async function lockDay(date) {
     await sleep(250 + Math.random() * 300);
   }
 }
-function updateDay(date, mutate) {
+function updateDay(date, mutate, meta) {
   return enqueue(async () => {
     if (MODE !== 'cloud') {
       const cur = clone(S.dias[date] || { date, items: [] }); mutate(cur);
       S.dias[date] = cur; lsSave(); bump(); return true;
     }
     if (DB.runDay) {
-      try { await DB.runDay(date, cur => { if (!Array.isArray(cur.items)) cur.items = []; mutate(cur); }); return true; }
+      try { await DB.runDay(date, cur => { if (!Array.isArray(cur.items)) cur.items = []; mutate(cur); }, meta); return true; }
       catch (e) { return dbFail(e); }
     }
     try {
@@ -655,7 +678,7 @@ function subscribe() {
     else showBanner('A conexão com os dados caiu. Recarregue a página para reconectar.');
     hideLoading();
   };
-  const colTo = (key, snap) => { const o = {}; snap.docs.forEach(d => { o[d.id] = d.data(); }); S[key] = o; };
+  const colTo = (key, snap) => { const o = {}, x = {}; snap.docs.forEach(d => { const v = d.data(); if (v && v._excluido) x[d.id] = v; else o[d.id] = v; }); S[key] = o; if (S.lix[key]) S.lix[key] = x; };
   DB.collection('profs').onSnapshot(s => { colTo('profs', s); done('profs', s); bump(); }, onErr);
   DB.collection('pessoas').onSnapshot(s => { colTo('pessoas', s); done('pessoas', s); bump(); }, onErr);
   DB.collection('dias').where('date', '>=', cutoff).onSnapshot(s => { colTo('dias', s); done('dias', s); bump(); hideLoading(); }, onErr);
@@ -720,7 +743,7 @@ function renderAll() {
   renderSchool();
   renderBadge();
   const v = currentView();
-  ({ checkin: renderCheckin, dashboard: renderDashboard, relatorios: renderRelatorios, frequentadores: renderFreq, professores: renderProfs, emails: renderEmails, configuracoes: renderConfig })[v]();
+  ({ checkin: renderCheckin, dashboard: renderDashboard, relatorios: renderRelatorios, frequentadores: renderFreq, professores: renderProfs, emails: renderEmails, configuracoes: renderConfig, historico: renderHist })[v]();
 }
 function route() {
   const v = currentView();
@@ -939,8 +962,8 @@ $('#f-checkin').addEventListener('submit', async e => {
   const prof = S.profs[v.prof];
   const item = { id: uid(), ts: Date.now(), pessoaId: id, nome: v.nome, tipo: v.tipo, classe: v.classe, ra: v.ra, numero: v.numero, setor: v.setor, profId: v.prof, profNome: v.prof === 'livre' ? 'Treino livre' : (prof ? prof.nome : ''), obs: v.obs, pse: null, dur: null };
   const changed = !exist || JSON.stringify(exist) !== JSON.stringify(p);
-  const ok1 = changed ? await dbSet('pessoas/' + id, p) : true;
-  const ok2 = ok1 && await updateDay(d, day => day.items.push(item));
+  const ok1 = changed ? await dbSet('pessoas/' + id, p, { acao: exist ? 'Atualizou cadastro' : 'Novo cadastro', resumo: v.nome + (v.ra ? ' · RA ' + v.ra : ''), dados: exist ? { antes: semMeta(exist) } : null }) : true;
+  const ok2 = ok1 && await updateDay(d, day => day.items.push(item), { acao: 'Check-in', resumo: `${v.nome} · ${classeTxt(item)}` });
   btn.disabled = false;
   if (!ok2) return;
   toast(`✅ Entrada de <b>${esc(v.nome)}</b> registrada às ${fmtT(item.ts)}`);
@@ -972,7 +995,7 @@ document.addEventListener('click', async e => {
     const [date, id] = del.dataset.delci.split('|');
     const it = ((S.dias[date] || {}).items || []).find(x => x.id === id); if (!it) return;
     if (await confirmModal(`Excluir a entrada de <b>${esc(it.nome)}</b> (${fmtD(date)} às ${fmtT(it.ts)})?`, 'Excluir')) {
-      if (await updateDay(date, day => { day.items = day.items.filter(x => x.id !== id); })) toast('Entrada excluída.');
+      if (await updateDay(date, day => { day.items = day.items.filter(x => x.id !== id); }, { acao: 'Excluiu check-in', resumo: `${it.nome} · ${fmtD(date)} ${fmtT(it.ts)}`, dados: { date, item: clone(it) } })) toast('Entrada excluída. Fica registrada no histórico.');
     }
   }
 });
@@ -989,7 +1012,7 @@ function openPse(date, id) {
   const carga = () => { const dur = +m.querySelector('#pse-dur').value; m.querySelector('#pse-carga').textContent = val != null && dur ? `Carga da sessão: ${val * dur} UA` : ''; m.querySelector('#pse-desc').innerHTML = val == null ? '<span class="faint">Toque em um número de 0 a 10.</span>' : `<b>${val} · ${esc(PSE_LBL[val])}</b>${PSE_DESC[val] ? ` <span class="muted">— ${esc(PSE_DESC[val])}</span>` : ''}`; };
   m.querySelectorAll('.pse-grid button').forEach(bt => bt.onclick = () => { val = +bt.dataset.v; m.querySelectorAll('.pse-grid button').forEach(x => x.classList.toggle('on', x === bt)); carga(); });
   m.querySelector('#pse-dur').oninput = carga; carga();
-  const save = async (pse, dur) => { closeModal(); if (await updateDay(date, day => { const x = day.items.find(y => y.id === id); if (x) { x.pse = pse; x.dur = dur; } })) toast(pse == null ? 'PSE removido.' : `PSE ${pse} salvo para <b>${esc(it.nome)}</b>.`); };
+  const save = async (pse, dur) => { closeModal(); if (await updateDay(date, day => { const x = day.items.find(y => y.id === id); if (x) { x.pse = pse; x.dur = dur; } }, { acao: 'PSE', resumo: `${it.nome} · ${fmtD(date)}: ${pse == null ? 'removido' : 'PSE ' + pse + (dur ? ' · ' + dur + ' min' : '')}` })) toast(pse == null ? 'PSE removido.' : `PSE ${pse} salvo para <b>${esc(it.nome)}</b>.`); };
   m.querySelector('#pse-save').onclick = () => { if (val == null) { toast('Escolha um valor de 0 a 10.', 'warn'); return; } const dur = parseInt(m.querySelector('#pse-dur').value, 10); save(val, dur > 0 ? dur : null); };
   const cl = m.querySelector('#pse-clear'); if (cl) cl.onclick = () => save(null, null);
 }
@@ -1146,15 +1169,15 @@ function openPessoa(id) {
     <div class="cbox" style="height:200px" id="c-pessoa"></div>
     <h3 style="margin-top:18px;font-size:16px">Últimas visitas</h3>
     <div class="tbl-wrap" style="max-height:220px">${hist.length ? `<table><thead><tr><th>Data</th><th>Hora</th><th>Professor</th><th>PSE</th></tr></thead><tbody>${hist.slice(0, 30).map(r => `<tr><td>${fmtD(r.date)}</td><td class="muted">${fmtT(r.ts)}</td><td>${esc(r.profNome || '—')}</td><td>${pseBtn(r)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">Sem visitas.</div>'}</div>
-    <div class="row" style="margin-top:20px"><button class="btn ghost danger" id="pp-del">Excluir cadastro</button><span class="spacer"></span><button class="btn" data-close>Fechar</button><button class="btn red" id="pp-save">Salvar</button></div>`);
+    <div class="row" style="margin-top:20px">${canDelete() ? '<button class="btn ghost danger" id="pp-del">Excluir cadastro</button>' : ''}<span class="spacer"></span><button class="btn" data-close>Fechar</button><button class="btn red" id="pp-save">Salvar</button></div>`);
   chart('c-pessoa', 'line', ps.map(r => fmtD(r.date).slice(0, 5)), ps.map(r => r.pse), { label: 'PSE', max: 10 });
   m.querySelector('#pp-save').onclick = async () => {
     const n = { tipo: m.querySelector('#pp-tipo').value, classe: m.querySelector('#pp-classe').value.trim(), ra: m.querySelector('#pp-ra').value.trim().toUpperCase(), numero: String(parseInt(m.querySelector('#pp-num').value, 10) || ''), setor: m.querySelector('#pp-setor').value, email: m.querySelector('#pp-email').value.trim().toLowerCase(), emailResp: m.querySelector('#pp-resp').value.trim().toLowerCase(), avisoPais: m.querySelector('#pp-aviso').value || null };
     if (!okEmail(n.email) || !okEmail(n.emailResp)) { toast('Confira os e-mails.', 'err'); return; }
-    if (await dbSet('pessoas/' + id, Object.assign(clone(p), n))) { closeModal(); toast('Cadastro atualizado.'); }
+    if (await dbSet('pessoas/' + id, Object.assign(clone(p), n), { acao: 'Editou cadastro', resumo: p.nome, dados: { antes: semMeta(p) } })) { closeModal(); toast('Cadastro atualizado.'); }
   };
-  m.querySelector('#pp-del').onclick = async () => {
-    if (await confirmModal(`Excluir o cadastro de <b>${esc(p.nome)}</b>? Os check-ins já feitos continuam nos relatórios.`, 'Excluir')) { if (await dbDel('pessoas/' + id)) toast('Cadastro excluído.'); }
+  if (m.querySelector('#pp-del')) m.querySelector('#pp-del').onclick = async () => {
+    if (!canDelete()) { toast('Só administradores podem excluir cadastros.', 'warn'); return; } if (await confirmModal(`Mover o cadastro de <b>${esc(p.nome)}</b> para a lixeira? Os check-ins já feitos continuam nos relatórios.`, 'Mover para a lixeira')) { if (await dbSet('pessoas/' + id, Object.assign(clone(p), { _excluido: true, _excluidoEm: Date.now() }), { acao: 'Excluiu cadastro', resumo: p.nome })) { closeModal(); toast('Cadastro movido para a lixeira.'); } }
   };
 }
 
@@ -1167,7 +1190,7 @@ function renderProfs() {
   const cnt = {}; derived().all.forEach(r => { if (r.date >= cut) cnt[r.profId] = (cnt[r.profId] || 0) + 1; });
   $('#pf-list').innerHTML = list.length ? list.map(p => `<div class="prof"><div class="row"><div class="av">${esc(p.nome.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase())}</div><div style="flex:1;min-width:0"><b>${esc(p.nome)}</b><div class="muted" style="font-size:13px">${esc(p.especialidade || 'Professor')}</div></div></div>
     ${p.email ? `<div class="addr">${esc(p.email)}</div>` : ''}<div class="faint" style="font-size:13px">${cnt[p.id] || 0} check-in${cnt[p.id] === 1 ? '' : 's'} em 30 dias</div>
-    <div class="row" style="margin-top:6px"><button class="btn sm" data-editprof="${esc(p.id)}">Editar</button><button class="btn sm ghost danger" data-delprof="${esc(p.id)}">Remover</button></div></div>`).join('') : '<div class="empty">Nenhum professor cadastrado. Adicione o primeiro acima.</div>';
+    <div class="row" style="margin-top:6px"><button class="btn sm" data-editprof="${esc(p.id)}">Editar</button>${canDelete() ? `<button class="btn sm ghost danger" data-delprof="${esc(p.id)}">Remover</button>` : ''}</div></div>`).join('') : '<div class="empty">Nenhum professor cadastrado. Adicione o primeiro acima.</div>';
 }
 $('#f-prof-add').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1176,7 +1199,7 @@ $('#f-prof-add').addEventListener('submit', async e => {
   if (!okEmail(email)) { $('#pf-email').classList.add('bad'); toast('E-mail inválido.', 'err'); return; }
   const id = editProf || ('prof-' + slug(nome).slice(0, 40) + '-' + uid().slice(-4));
   const base = editProf ? clone(S.profs[editProf] || {}) : { criadoEm: Date.now() };
-  if (await dbSet('profs/' + id, Object.assign(base, { nome, email, especialidade: esp }))) { toast(editProf ? 'Professor atualizado.' : `Professor <b>${esc(nome)}</b> adicionado.`); resetProfForm(); }
+  if (await dbSet('profs/' + id, Object.assign(base, { nome, email, especialidade: esp }), { acao: editProf ? 'Editou professor' : 'Novo professor', resumo: nome, dados: editProf ? { antes: semMeta(S.profs[editProf] || {}) } : null })) { toast(editProf ? 'Professor atualizado.' : `Professor <b>${esc(nome)}</b> adicionado.`); resetProfForm(); }
 });
 function resetProfForm() { editProf = null; $('#f-prof-add').reset(); $('#pf-title').textContent = 'Adicionar professor'; $('#pf-save').textContent = 'Adicionar professor'; $('#pf-cancel').hidden = true; $('#pf-nome').classList.remove('bad'); }
 $('#pf-cancel').addEventListener('click', resetProfForm);
@@ -1184,7 +1207,7 @@ document.addEventListener('click', async e => {
   const ed = e.target.closest('[data-editprof]');
   if (ed) { const p = S.profs[ed.dataset.editprof]; if (!p) return; editProf = ed.dataset.editprof; $('#pf-nome').value = p.nome; $('#pf-email').value = p.email || ''; $('#pf-esp').value = p.especialidade || ''; $('#pf-title').textContent = 'Editar professor'; $('#pf-save').textContent = 'Salvar alterações'; $('#pf-cancel').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' }); $('#pf-nome').focus(); return; }
   const dl = e.target.closest('[data-delprof]');
-  if (dl) { const p = S.profs[dl.dataset.delprof]; if (!p) return; if (await confirmModal(`Remover <b>${esc(p.nome)}</b> da equipe? Os check-ins antigos continuam com o nome dele.`, 'Remover')) { if (await dbDel('profs/' + dl.dataset.delprof)) toast('Professor removido.'); } }
+  if (dl) { const p = S.profs[dl.dataset.delprof]; if (!p) return; if (!canDelete()) { toast('Só administradores podem remover professores.', 'warn'); return; } if (await confirmModal(`Mover <b>${esc(p.nome)}</b> para a lixeira? Os check-ins antigos continuam com o nome dele.`, 'Remover')) { if (await dbSet('profs/' + dl.dataset.delprof, Object.assign(clone(p), { _excluido: true, _excluidoEm: Date.now() }), { acao: 'Removeu professor', resumo: p.nome })) toast('Professor movido para a lixeira.'); } }
 });
 
 /* ====================== E-MAILS ====================== */
@@ -1235,7 +1258,7 @@ function volteEmails() { const list = volteLista(); return [...new Set(list.filt
 function volteBulkText() { const c = cfg(); const d = parseInt($('#volte-dias').value, 10) || c.diasInativo; return { ass: fill(c.tplVolteAss, { nome: '' }), body: c.tplVolte.replace(/,?\s*\{nome\}/g, '').replace(/\{ultima\}/g, `há mais de ${d} dias`) }; }
 function updateVolteMailto() { const em = volteEmails(); const t = volteBulkText(); $('#volte-mailto').href = em.length ? mailto('', t.ass, t.body, em.join(',')) : '#'; }
 $('#volte-dias').addEventListener('input', renderVolte);
-$('#volte-dias').addEventListener('change', () => { const v = parseInt($('#volte-dias').value, 10); if (v > 0 && v !== cfg().diasInativo) dbSet('config/geral', Object.assign(clone(S.config || {}), { diasInativo: v })); });
+$('#volte-dias').addEventListener('change', () => { const v = parseInt($('#volte-dias').value, 10); if (v > 0 && v !== cfg().diasInativo) dbSet('config/geral', Object.assign(clone(S.config || {}), { diasInativo: v }), { acao: 'Configuração', resumo: 'Dias para “volte a treinar”: ' + v }); });
 $('#volte-resp').addEventListener('change', renderVolte);
 $('#volte-list').addEventListener('change', e => {
   if (e.target.id === 'volte-all') { volteSel = e.target.checked ? new Set(volteLista().map(p => p.id)) : new Set(); renderVolte(); return; }
@@ -1249,9 +1272,9 @@ document.addEventListener('click', async e => {
   const cp = e.target.closest('[data-copypais]');
   if (cp) { const p = S.pessoas[cp.dataset.copypais]; const c = cfg(); const vars = { nome: p.nome, classe: p.classe || '', data: fmtD(p.primeiraVisita) }; copyText(`Para: ${p.emailResp || ''}\nAssunto: ${fill(c.tplPaisAss, vars)}\n\n${fill(c.tplPais, vars)}`, 'Texto copiado.'); return; }
   const en = e.target.closest('[data-enviado]');
-  if (en) { const id = en.dataset.enviado; const p = S.pessoas[id]; if (p && await dbSet('pessoas/' + id, Object.assign(clone(p), { avisoPais: 'enviado', avisoPaisEm: Date.now() }))) toast(`Aviso de <b>${esc(p.nome)}</b> marcado como enviado.`); }
+  if (en) { const id = en.dataset.enviado; const p = S.pessoas[id]; if (p && await dbSet('pessoas/' + id, Object.assign(clone(p), { avisoPais: 'enviado', avisoPaisEm: Date.now() }), { acao: 'Aviso aos pais enviado', resumo: p.nome })) toast(`Aviso de <b>${esc(p.nome)}</b> marcado como enviado.`); }
 });
-async function saveCfg(patch, msg) { if (await dbSet('config/geral', Object.assign(clone(S.config || {}), patch))) toast(msg || 'Salvo.'); }
+async function saveCfg(patch, msg) { if (await dbSet('config/geral', Object.assign(clone(S.config || {}), patch), { acao: 'Configuração', resumo: (msg || 'Configuração salva').replace(/\.$/, '') })) toast(msg || 'Salvo.'); }
 $('#tpl-pais-save').addEventListener('click', () => saveCfg({ tplPais: $('#tpl-pais').value, tplPaisAss: $('#tpl-pais-ass').value }, 'Modelo do aviso aos pais salvo.'));
 $('#tpl-volte-save').addEventListener('click', () => saveCfg({ tplVolte: $('#tpl-volte').value, tplVolteAss: $('#tpl-volte-ass').value }, 'Modelo do “volte a treinar” salvo.'));
 $('#lista-copy').addEventListener('click', () => { const em = [...new Set(pessoasLista().map(p => p.email).filter(Boolean))]; if (!em.length) { toast('Nenhum e-mail coletado ainda.', 'warn'); return; } copyText(em.join(', '), `${em.length} e-mails copiados.`); });
@@ -1268,7 +1291,62 @@ function renderConfig() {
   $('#cfg-logo-prev').innerHTML = c.escolaLogo ? `<img src="${esc(c.escolaLogo)}" alt="" style="height:44px">` : '<span class="faint">Sem logo</span>';
   $('#cfg-logo-del').hidden = !c.escolaLogo;
   renderAcesso();
+  renderLixeira();
 }
+function renderLixeira() {
+  const box = $('#cfg-lix'); box.hidden = !canDelete();
+  if (box.hidden) return;
+  const rows = [...Object.entries(S.lix.pessoas || {}).map(([id, p]) => ['pessoas', id, p, p.tipo || 'Cadastro']), ...Object.entries(S.lix.profs || {}).map(([id, p]) => ['profs', id, p, 'Professor'])]
+    .sort((a, b) => (b[2]._excluidoEm || 0) - (a[2]._excluidoEm || 0));
+  $('#lix-list').innerHTML = rows.length ? rows.map(([col, id, p, tipo]) => `<div class="acc-row"><div style="flex:1"><b>${esc(p.nome)}</b> <span class="tag">${esc(tipo)}</span><div class="faint" style="font-size:12px">excluído ${p._excluidoEm ? 'em ' + fmtD(iso(new Date(p._excluidoEm))) : ''}${p._por ? ' por ' + esc(p._por) : ''}</div></div><button class="btn sm" data-restaura="${col}/${esc(id)}">↩ Restaurar</button></div>`).join('') : '<div class="faint" style="font-size:13.5px">Lixeira vazia.</div>';
+}
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-restaura]'); if (!b) return;
+  const [col, id] = b.dataset.restaura.split('/'); const p = (S.lix[col] || {})[id]; if (!p) return;
+  const d = clone(p); delete d._excluido; delete d._excluidoEm;
+  if (await dbSet(col + '/' + id, d, { acao: col === 'profs' ? 'Restaurou professor' : 'Restaurou cadastro', resumo: p.nome })) toast(`<b>${esc(p.nome)}</b> restaurado.`);
+});
+
+/* ====================== HISTÓRICO ====================== */
+let histSub = null;
+function startHist() {
+  if (histSub || !EXT || !EXT.isAdmin) return;
+  histSub = DB.collection('historico').orderBy('_em', 'desc').limit(1000).onSnapshot(s => { HIST = s.docs.map(d => Object.assign({ id: d.id }, d.data())); if (currentView() === 'historico') renderHist(); }, () => { });
+}
+function renderHist() {
+  if (!EXT || !EXT.isAdmin) { $('#hi-table').innerHTML = '<div class="empty">Disponível só para administradores.</div>'; return; }
+  const quem = [...new Set(HIST.map(h => h._por).filter(Boolean))].sort();
+  const acoes = [...new Set(HIST.map(h => h.acao).filter(Boolean))].sort();
+  setSelect($('#hi-quem'), quem.map(q => [q, q]), 'Todos');
+  setSelect($('#hi-acao'), acoes.map(a => [a, a]), 'Todas');
+  const q = norm($('#hi-q').value), w = $('#hi-quem').value, a = $('#hi-acao').value, de = $('#hi-de').value, ate = $('#hi-ate').value;
+  const list = HIST.filter(h => {
+    const t = tsOf(h._em), d = t ? iso(new Date(t)) : '';
+    return (!w || h._por === w) && (!a || h.acao === a) && (!de || d >= de) && (!ate || d <= ate) && (!q || norm([h.acao, h.resumo, h._por].join(' ')).includes(q));
+  });
+  $('#hi-count').textContent = list.length + ' registro' + (list.length === 1 ? '' : 's');
+  $('#hi-table').innerHTML = list.length ? `<table><thead><tr><th>Quando</th><th>Quem</th><th>Ação</th><th>Detalhe</th><th></th></tr></thead><tbody>${list.slice(0, 1000).map(h => {
+    const t = tsOf(h._em); const dt = t ? new Date(t) : null;
+    const danger = /Excluiu|Removeu/.test(h.acao || '');
+    let btn = '';
+    if (h.acao === 'Excluiu check-in' && h.dados && h.dados.item) btn = `<button class="btn sm" data-hrest="${esc(h.id)}">↩ Restaurar</button>`;
+    else if (h.dados && h.dados.antes && /^(pessoas|profs)\//.test(h.caminho || '')) btn = `<button class="btn sm ghost" data-hrest="${esc(h.id)}" title="Voltar o cadastro para como estava antes desta alteração">↩ Versão anterior</button>`;
+    return `<tr><td class="muted" style="white-space:nowrap">${dt ? fmtD(iso(dt)) + ' ' + fmtT(t) : '—'}</td><td class="addr">${esc(h._por || '')}</td><td>${danger ? '<span class="tag red">' + esc(h.acao) + '</span>' : esc(h.acao)}</td><td>${esc(h.resumo || '')}</td><td>${btn}</td></tr>`;
+  }).join('')}</tbody></table>` : `<div class="empty">${HIST.length ? 'Nada encontrado com esses filtros.' : 'Nenhuma ação registrada ainda.'}</div>`;
+}
+['#hi-q', '#hi-quem', '#hi-acao', '#hi-de', '#hi-ate'].forEach(sel => $(sel).addEventListener('input', renderHist));
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-hrest]'); if (!b) return;
+  const h = HIST.find(x => x.id === b.dataset.hrest); if (!h) return;
+  if (h.acao === 'Excluiu check-in') {
+    const { date, item } = h.dados;
+    if ((S.dias[date] && (S.dias[date].items || []).some(i => i.id === item.id))) { toast('Esse check-in já está no sistema.', 'warn'); return; }
+    if (await updateDay(date, cur => { if (!cur.items.some(i => i.id === item.id)) cur.items.push(item); }, { acao: 'Restaurou check-in', resumo: `${item.nome} · ${fmtD(date)} ${fmtT(item.ts)}` })) toast('Check-in restaurado.');
+  } else if (h.dados && h.dados.antes) {
+    if (!(await confirmModal(`Voltar <b>${esc(h.dados.antes.nome || h.caminho)}</b> para como estava antes da alteração de ${fmtD(iso(new Date(tsOf(h._em))))}?`, 'Restaurar'))) return;
+    if (await dbSet(h.caminho, h.dados.antes, { acao: 'Restaurou versão anterior', resumo: h.dados.antes.nome || h.caminho })) toast('Versão anterior restaurada.');
+  }
+});
 function renderAccount() {
   if (!EXT) return;
   const a = $('#acct'); a.hidden = false;
@@ -1294,9 +1372,9 @@ $('#acc-cod-gen').addEventListener('click', () => { const c = 'ABCDEFGHJKLMNPQRS
 $('#acc-cod-save').addEventListener('click', async () => {
   const v = $('#acc-cod').value.trim().toUpperCase().replace(/\s+/g, '');
   if (v.length < 6) { toast('Use um código com pelo menos 6 caracteres.', 'err'); return; }
-  if (await dbSet('acesso/codigo', { valor: v, em: Date.now() })) toast(`Código <b>${esc(v)}</b> salvo. Passe para os professores.`);
+  if (await dbSet('acesso/codigo', { valor: v, em: Date.now() }, { acao: 'Acesso', resumo: 'Trocou o código de acesso' })) toast(`Código <b>${esc(v)}</b> salvo. Passe para os professores.`);
 });
-async function saveAcesso(L) { L.admins = [...new Set(L.admins)]; L.emails = [...new Set(L.emails.filter(e => !L.admins.includes(e)))]; return dbSet('acesso/lista', L); }
+async function saveAcesso(L) { L.admins = [...new Set(L.admins)]; L.emails = [...new Set(L.emails.filter(e => !L.admins.includes(e)))]; return dbSet('acesso/lista', L, { acao: 'Acesso', resumo: 'Lista: ' + L.admins.concat(L.emails).join(', ') }); }
 $('#acc-add').addEventListener('click', async () => {
   const e = $('#acc-email').value.trim().toLowerCase(); const k = $('#acc-nivel').value;
   if (!e || !okEmail(e)) { toast('Informe um e-mail válido.', 'err'); return; }
@@ -1306,7 +1384,7 @@ $('#acc-add').addEventListener('click', async () => {
 });
 document.addEventListener('click', async ev => {
   const md = ev.target.closest('[data-memdel]');
-  if (md) { const e = md.dataset.memdel; if (await confirmModal(`Remover o acesso de <b>${esc(e)}</b>? Para voltar, a pessoa precisará do código atual.`, 'Remover')) { if (await dbDel('membros/' + e)) toast('Acesso removido.'); } return; }
+  if (md) { const e = md.dataset.memdel; if (await confirmModal(`Remover o acesso de <b>${esc(e)}</b>? Para voltar, a pessoa precisará do código atual.`, 'Remover')) { if (await dbDel('membros/' + e, { acao: 'Acesso', resumo: 'Removeu o acesso de ' + e })) toast('Acesso removido.'); } return; }
   const b = ev.target.closest('[data-accdel]'); if (!b) return;
   const e = b.dataset.accdel;
   if (!(await confirmModal(`Remover o acesso de <b>${esc(e)}</b>?`, 'Remover'))) return;
@@ -1341,12 +1419,13 @@ $('#cfg-import').addEventListener('change', async e => {
   const nDias = Object.keys(d.dias || {}).length, nP = Object.keys(d.pessoas || {}).length;
   if (!(await confirmModal(`Importar ${nP} frequentadores, ${Object.keys(d.profs || {}).length} professores e ${nDias} dias de check-in? Registros com o mesmo identificador serão substituídos; check-ins do mesmo dia são somados.`, 'Importar'))) return;
   toast('Importando… não feche a página.', 'warn');
-  for (const [id, p] of Object.entries(d.profs || {})) await dbSet('profs/' + id, p);
-  for (const [id, p] of Object.entries(d.pessoas || {})) await dbSet('pessoas/' + id, p);
+  const MI = { acao: 'Importou backup', resumo: f.name };
+  for (const [id, p] of Object.entries(d.profs || {})) await dbSet('profs/' + id, p, MI);
+  for (const [id, p] of Object.entries(d.pessoas || {})) await dbSet('pessoas/' + id, p, MI);
   for (const [date, day] of Object.entries(d.dias || {})) {
-    await updateDay(date, cur => { const ids = new Set(cur.items.map(i => i.id)); (day.items || []).forEach(i => { if (!ids.has(i.id)) cur.items.push(i); }); });
+    await updateDay(date, cur => { const ids = new Set(cur.items.map(i => i.id)); (day.items || []).forEach(i => { if (!ids.has(i.id)) cur.items.push(i); }); }, MI);
   }
-  if (d.config) await dbSet('config/geral', Object.assign(clone(S.config || {}), d.config));
+  if (d.config) await dbSet('config/geral', Object.assign(clone(S.config || {}), d.config), MI);
   toast('Backup importado.');
 });
 
@@ -1356,7 +1435,7 @@ async function boot() {
   route(); onTipo(); markNeeds();
   if (window.BANDGYM_EXTERNAL) {
     setMode('loading');
-    const start = d => { EXT = d; DB = d.db; setMode('cloud'); renderAccount(); subscribe(); d.onAcesso = () => bump(); };
+    const start = d => { EXT = d; DB = d.db; setMode('cloud'); renderAccount(); subscribe(); $('#nav-hist').hidden = !d.isAdmin; startHist(); d.onAcesso = () => { $('#nav-hist').hidden = !EXT.isAdmin; startHist(); bump(); }; };
     if (window.__bandgymBackend) start(window.__bandgymBackend);
     else window.addEventListener('bandgym-backend', e => start(e.detail), { once: true });
     return;

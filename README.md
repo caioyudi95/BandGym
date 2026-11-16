@@ -81,3 +81,15 @@ Na nova (Firebase): **Configurações → Importar backup**.
 - **“Falta configurar o Firebase”** → o `firebase-config.js` ainda está com `COLE_AQUI`.
 - **Custo** → o plano gratuito (Spark) do Firebase e o plano Hobby da Vercel cobrem o uso de uma academia escolar.
 - **Internet caiu** → o que já foi carregado continua na tela; novas entradas precisam de conexão para salvar.
+
+---
+
+## Segurança e histórico
+
+- **Toda gravação é assinada**: o banco registra o e-mail de quem fez e a hora do servidor. Gravação sem assinatura é recusada pelas regras.
+- **Histórico imutável** (aba *Histórico*, só administradores): cada ação vira uma linha que ninguém consegue editar ou apagar pelo site.
+- **Só administradores excluem** cadastros e professores (vão para a *Lixeira*, em Configurações, e podem ser restaurados).
+- **Professores removem no máximo 1 check-in por vez**; cada exclusão fica no Histórico com botão **Restaurar**.
+- Edições de cadastro guardam a versão anterior: no Histórico, **Versão anterior** desfaz a alteração.
+
+> Sempre que o `firestore.rules` mudar, cole a versão nova em Firestore → Regras → **Publicar**.

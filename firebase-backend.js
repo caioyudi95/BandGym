@@ -51,22 +51,31 @@ const app = initializeApp(firebaseConfig);
 const auth = A.getAuth(app);
 auth.languageCode = 'pt';
 let fs;
-try { fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+try { fs = F.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
 catch (e) { fs = F.getFirestore(app); }
 
 // ---- Adaptador no formato que o app espera ----
 const CODES = { 'permission-denied': 'invalid_argument', 'unauthenticated': 'revoked', 'resource-exhausted': 'resource_exhausted', 'unavailable': 'unavailable', 'deadline-exceeded': 'unavailable', 'aborted': 'unavailable', 'invalid-argument': 'invalid_argument', 'failed-precondition': 'unavailable' };
 const mapErr = e => ({ code: CODES[e && e.code] || 'unavailable', message: (e && e.message) || String(e) });
-const wrapDoc = s => ({ id: s.id, exists: s.exists(), data: () => s.data(), metadata: s.metadata });
+const wrapDoc = s => ({ id: s.id, exists: s.exists(), data: () => s.data({ serverTimestamps: 'estimate' }), metadata: s.metadata });
+// ---- Assinatura + histórico: toda gravação vai junto com uma linha no histórico (as regras exigem) ----
+let ME = '';
+const limpo = d => JSON.parse(JSON.stringify(d ?? null));
+function linha(path, meta) {
+  const ref = F.doc(F.collection(fs, 'historico'));
+  const h = { acao: (meta && meta.acao) || 'Alteração', resumo: String((meta && meta.resumo) || path).slice(0, 500), caminho: path, _por: ME, _em: F.serverTimestamp() };
+  if (meta && meta.dados) h.dados = limpo(meta.dados);
+  return [ref, h];
+}
+const assinar = (d, logId) => Object.assign(limpo(d), { _por: ME, _em: F.serverTimestamp(), _log: logId });
 const guard = p => p.catch(e => { throw mapErr(e); });
 function docRef(path) {
   const r = F.doc(fs, path);
   return {
     id: r.id, path,
     get: () => guard(F.getDoc(r).then(wrapDoc)),
-    set: d => guard(F.setDoc(r, d)),
-    update: d => guard(F.updateDoc(r, d)),
-    delete: () => guard(F.deleteDoc(r)),
+    set: (d, meta) => { const [hr, h] = linha(path, meta); const b = F.writeBatch(fs); b.set(r, assinar(d, hr.id)); b.set(hr, h); return guard(b.commit()); },
+    delete: meta => { const [hr, h] = linha(path, meta); const b = F.writeBatch(fs); b.delete(r); b.set(hr, h); return guard(b.commit()); },
     onSnapshot: (next, err) => F.onSnapshot(r, { includeMetadataChanges: true }, s => next(wrapDoc(s)), e => err && err(mapErr(e)))
   };
 }
@@ -83,12 +92,14 @@ const db = {
   doc: docRef,
   collection: p => Object.assign(queryRef(F.collection(fs, p)), { doc: id => docRef(p + '/' + id) }),
   // Check-ins do dia gravados em transação: dois computadores ao mesmo tempo não se sobrescrevem
-  runDay: (date, mutate) => guard(F.runTransaction(fs, async tx => {
+  runDay: (date, mutate, meta) => guard(F.runTransaction(fs, async tx => {
     const r = F.doc(fs, 'dias/' + date);
     const s = await tx.get(r);
     const cur = s.exists() ? JSON.parse(JSON.stringify(s.data())) : { date, items: [] };
     mutate(cur);
-    tx.set(r, cur);
+    const [hr, h] = linha('dias/' + date, meta);
+    tx.set(r, assinar(cur, hr.id));
+    tx.set(hr, h);
   }))
 };
 
@@ -228,6 +239,7 @@ function entrou(user) {
   offAll(subs); offAll(adminSubs);
   const email = (user.email || '').toLowerCase();
   const nome = user.displayName || '';
+  ME = email;
   show('<p>Verificando acesso…</p>');
   let L, M, gotL = false, gotM = false;
   const avaliar = () => {
