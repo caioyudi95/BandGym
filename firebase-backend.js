@@ -51,7 +51,7 @@ const app = initializeApp(firebaseConfig);
 const auth = A.getAuth(app);
 auth.languageCode = 'pt';
 let fs;
-try { fs = F.initializeFirestore(app, { ignoreUndefinedProperties: true, localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }); }
+try { fs = F.initializeFirestore(app, { ignoreUndefinedProperties: true }); }
 catch (e) { fs = F.getFirestore(app); }
 
 // ---- Adaptador no formato que o app espera ----
