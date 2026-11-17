@@ -214,7 +214,7 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
       <button data-v="professores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/><path d="M19 8v6M16 11h6"/></svg><span class="lbl">Professores</span></button>
       <button data-v="emails"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg><span class="lbl">E-mails</span><span class="badge" id="badge-mail" hidden></span></button>
       <button data-v="historico" id="nav-hist" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg><span class="lbl">Histórico</span></button>
-      <button data-v="configuracoes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Configurações</span></button>
+      <button data-v="configuracoes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Configurações</span><span class="badge" id="badge-cfg" hidden></span></button>
     </nav>
     <div class="side-foot">
       <div class="mode" id="mode"><i></i><span>Conectando…</span></div>
@@ -440,8 +440,9 @@ details summary{cursor:pointer;color:var(--muted);font-weight:600;margin-top:14p
           <div id="cfg-acesso" hidden>
             <h2>Acesso</h2><p class="hint" id="acc-me"></p>
             <div id="acc-admin" hidden>
-              <div class="f" style="margin-bottom:16px"><span class="lt" style="font-weight:700;font-size:13.5px">Código de acesso da academia</span>
-                <p class="hint" style="margin:4px 0 8px">Professores criam a conta (Google ou e-mail e senha), digitam este código e entram sozinhos. Troque o código quando quiser: quem já entrou continua com acesso.</p>
+              <div id="acc-sol"></div>
+              <div class="f" style="margin-bottom:16px"><span class="lt" style="font-weight:700;font-size:13.5px">Código de acesso da academia <small>opcional</small></span>
+                <p class="hint" style="margin:4px 0 8px">Normalmente o professor cria a conta e você recebe um e-mail para liberar. Se preferir, passe este código: quem digitar entra sem esperar a liberação.</p>
                 <div class="row"><input class="in" id="acc-cod" placeholder="Ex: BANDGYM2026" style="flex:1;min-width:160px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700"><button class="btn sm" id="acc-cod-gen">🎲 Gerar</button><button class="btn red sm" id="acc-cod-save">Salvar código</button></div>
                 <div class="faint" id="acc-cod-st" style="font-size:12.5px;margin-top:6px"></div>
               </div>
@@ -780,7 +781,7 @@ function renderSchool() {
   $('#school').innerHTML = html; $('#school-m').innerHTML = html;
 }
 function pendentesPais() { return Object.entries(S.pessoas).filter(([, p]) => p.tipo === 'Aluno' && p.avisoPais === 'pendente').map(([id, p]) => Object.assign({ id }, p)); }
-function renderBadge() { const n = pendentesPais().length; const b = $('#badge-mail'); b.hidden = !n; b.textContent = n; }
+function renderBadge() { const ns = EXT && EXT.isAdmin ? (EXT.solicitacoes || []).length : 0; const bc = $('#badge-cfg'); if (bc) { bc.hidden = !ns; bc.textContent = ns; } const n = pendentesPais().length; const b = $('#badge-mail'); b.hidden = !n; b.textContent = n; }
 
 /* ====================== Filtros (dashboard/relatórios) ====================== */
 function filtersHtml() {
@@ -1363,6 +1364,8 @@ function renderAcesso() {
   const L = EXT.acesso || { admins: [], emails: [] };
   if (document.activeElement !== $('#acc-cod')) $('#acc-cod').value = EXT.codigo || '';
   $('#acc-cod-st').textContent = EXT.codigo ? 'Código ativo.' : '⚠ Nenhum código definido: ninguém consegue se cadastrar sozinho ainda.';
+  const sol = EXT.solicitacoes || [];
+  $('#acc-sol').innerHTML = sol.length ? `<div class="banner on" style="display:block;margin-bottom:16px"><b>${sol.length} pedido${sol.length > 1 ? 's' : ''} de acesso aguardando</b>${sol.map(x => `<div class="acc-row" style="border-color:rgba(242,178,51,.25)"><div style="flex:1"><b>${esc(x.nome || 'Sem nome')}</b><div class="addr">${esc(x.email)}</div></div><button class="btn sm red" data-solok="${esc(x.email)}">Liberar</button><button class="btn sm ghost" data-solno="${esc(x.email)}">Recusar</button></div>`).join('')}</div>` : '';
   const mem = EXT.membros || [];
   $('#acc-mem').innerHTML = `<p class="hint" style="margin:0 0 4px">Professores que entraram com o código: <b>${mem.length}</b></p>` + mem.map(x => `<div class="acc-row"><div style="flex:1"><b>${esc(x.nome || '—')}</b><div class="addr">${esc(x.email)}</div></div><span class="faint" style="font-size:12px">${x.em ? fmtD(iso(new Date(x.em))) : ''}</span><button class="iconbtn" data-memdel="${esc(x.email)}" title="Remover acesso">${ICON_DEL}</button></div>`).join('');
   const rows = [...(L.admins || []).map(e => [e, 'admins']), ...(L.emails || []).map(e => [e, 'emails'])];
@@ -1383,6 +1386,13 @@ $('#acc-add').addEventListener('click', async () => {
   if (await saveAcesso(L)) { toast(`Acesso liberado para <b>${esc(e)}</b>.`); $('#acc-email').value = ''; }
 });
 document.addEventListener('click', async ev => {
+  const sok = ev.target.closest('[data-solok]'), sno = ev.target.closest('[data-solno]');
+  if (sok || sno) {
+    const e = (sok || sno).dataset[sok ? 'solok' : 'solno']; const x = (EXT.solicitacoes || []).find(y => y.email === e) || { email: e };
+    if (sok && !(await dbSet('membros/' + e, { email: e, nome: x.nome || '', em: Date.now(), via: 'aprovação no app' }, { acao: 'Acesso', resumo: `Liberou o acesso de ${x.nome ? x.nome + ' · ' : ''}${e}` }))) return;
+    if (await dbDel('solicitacoes/' + e, { acao: 'Acesso', resumo: (sok ? 'Resolveu' : 'Recusou') + ' o pedido de ' + e })) toast(sok ? `Acesso liberado para <b>${esc(x.nome || e)}</b>.` : 'Pedido recusado.');
+    return;
+  }
   const md = ev.target.closest('[data-memdel]');
   if (md) { const e = md.dataset.memdel; if (await confirmModal(`Remover o acesso de <b>${esc(e)}</b>? Para voltar, a pessoa precisará do código atual.`, 'Remover')) { if (await dbDel('membros/' + e, { acao: 'Acesso', resumo: 'Removeu o acesso de ' + e })) toast('Acesso removido.'); } return; }
   const b = ev.target.closest('[data-accdel]'); if (!b) return;

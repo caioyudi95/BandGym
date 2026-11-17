@@ -93,3 +93,36 @@ Na nova (Firebase): **Configurações → Importar backup**.
 - Edições de cadastro guardam a versão anterior: no Histórico, **Versão anterior** desfaz a alteração.
 
 > Sempre que o `firestore.rules` mudar, cole a versão nova em Firestore → Regras → **Publicar**.
+
+---
+
+## Liberação de professores por e-mail
+
+Fluxo: o professor cria a conta → você recebe um e-mail **“Fulano pediu acesso”** → clica em **Liberar** → ele recebe **“Seu acesso foi liberado”** e a tela dele abre sozinha.
+(Os pedidos também aparecem em **Configurações → Acesso**, com botões Liberar/Recusar. O código de acesso continua funcionando como alternativa.)
+
+### Configurar (uma vez, ≈10 min)
+
+**1. Chave do Firebase para o servidor**
+Firebase → ⚙ Configurações do projeto → **Contas de serviço** → **Gerar nova chave privada** → baixa um arquivo `.json`.
+> ⚠ Essa chave dá acesso total ao banco. **Nunca** suba esse arquivo no GitHub (o repositório é público).
+
+**2. Senha de app do Gmail (para enviar os e-mails)**
+1. Na conta Google que vai enviar (ex.: a sua), a **verificação em duas etapas** precisa estar ativa.
+2. Acesse **myaccount.google.com/apppasswords** → nome `BandGym` → **Criar** → copie a senha de 16 letras.
+
+**3. Variáveis na Vercel**
+Projeto → **Settings → Environment Variables** → adicione:
+
+| Nome | Valor |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | abra o `.json` do passo 1 num bloco de notas, copie **todo** o conteúdo e cole |
+| `GMAIL_USER` | o e-mail Gmail que vai enviar (ex.: `seuemail@gmail.com`) |
+| `GMAIL_APP_PASSWORD` | a senha de 16 letras do passo 2 |
+| `ADMIN_EMAIL` *(opcional)* | quem recebe os pedidos (vários separados por vírgula). Se vazio, vai para os administradores do BandGym |
+
+Depois: **Deployments → ⋯ no último deploy → Redeploy** (as variáveis só valem após um novo deploy).
+
+**4. Regras** — cole o `firestore.rules` atualizado em Firestore → Regras → **Publicar**.
+
+Alternativa ao Gmail: Resend (`RESEND_API_KEY` + `EMAIL_FROM`, exige domínio verificado para enviar a qualquer pessoa).

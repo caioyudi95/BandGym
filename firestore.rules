@@ -55,8 +55,16 @@ service cloud.firestore {
       allow create: if logado() && email == meuEmail() && codigoCerto()
                     && request.resource.data.email == meuEmail()
                     && request.resource.data.keys().hasOnly(['email', 'nome', 'codigo', 'em']);
+      // ...ou liberados pelo coordenador (pelo app; pelo link do e-mail quem grava é o servidor)
+      allow create: if admin() && assinado('membros/' + email);
       allow read: if logado() && (email == meuEmail() || admin());
       allow delete: if admin();
+    }
+
+    // Pedidos de acesso: criados só pelo servidor (/api/pedir-acesso); admin vê e resolve
+    match /solicitacoes/{email} {
+      allow read, delete: if admin();
+      allow create, update: if false;
     }
 
     // Histórico: todos os membros escrevem (só linhas novas e assinadas); só admin lê; ninguém edita/apaga

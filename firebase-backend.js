@@ -203,12 +203,35 @@ function telaVerificar(user, recemCriada = false) {
     entrou(auth.currentUser);
   };
 }
+let pedidoMostrado = false;
+async function telaPedido(email, nome) {
+  if (pedidoMostrado) return; pedidoMostrado = true;
+  show(`<p>Olá${nome ? ', <b>' + esc(nome.split(' ')[0]) + '</b>' : ''}!<br>A conta <span class="mail">${esc(email)}</span> ainda não tem acesso ao BandGym.</p>
+    <p class="ok" id="fb-ped" style="margin-top:-8px">Enviando pedido de acesso ao coordenador…</p>
+    <p>Quando ele liberar, você recebe um e-mail e <b>esta tela abre sozinha</b>.</p>
+    <button class="sec" id="fb-cod-link">Tenho um código de acesso</button>
+    <button class="sec" id="fb-out">Entrar com outra conta</button>`);
+  gate.querySelector('#fb-out').onclick = () => { pedidoMostrado = false; A.signOut(auth); };
+  gate.querySelector('#fb-cod-link').onclick = () => { pedidoMostrado = false; telaCodigo(email, nome); };
+  const el = () => gate.querySelector('#fb-ped');
+  try {
+    const tk = await auth.currentUser.getIdToken();
+    const r = await fetch('/api/pedir-acesso', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify({ nome }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
+    if (el()) el().textContent = j.jaPedido ? '✓ Seu pedido já foi enviado. Aguarde a liberação.' : j.emailFalhou ? '✓ Pedido registrado. (O e-mail ao coordenador falhou: avise-o pessoalmente.)' : '✓ Pedido enviado ao coordenador por e-mail.';
+  } catch (e) {
+    if (el()) { el().className = 'err'; el().textContent = 'Não foi possível enviar o pedido automático (' + e.message + '). Avise o coordenador ou use um código de acesso.'; }
+  }
+}
 function telaCodigo(email, nome) {
   show(`<p>Bem-vindo${nome ? ', <b>' + esc(nome.split(' ')[0]) + '</b>' : ''}!<br>Para liberar a conta <span class="mail">${esc(email)}</span>, digite o <b>código de acesso da academia</b> (peça ao coordenador).</p>
     <form id="fb-form" novalidate><input id="fb-cod" placeholder="Código de acesso" autocomplete="off" autocapitalize="characters" style="text-align:center;letter-spacing:2px;font-weight:700"><button class="red" type="submit">Liberar meu acesso</button></form>
     <button class="sec" id="fb-out">Entrar com outra conta</button><div class="err"></div>`);
   gate.querySelector('#fb-out').onclick = () => A.signOut(auth);
   gate.querySelector('#fb-cod').focus();
+  gate.querySelector('#fb-out').insertAdjacentHTML('beforebegin', '<button class="sec" id="fb-volta">← Voltar</button>');
+  gate.querySelector('#fb-volta').onclick = () => telaPedido(email, nome);
   gate.querySelector('#fb-form').onsubmit = async e => {
     e.preventDefault();
     const codigo = val('fb-cod').trim().toUpperCase();
@@ -246,17 +269,18 @@ function entrou(user) {
     if (!gotL || !gotM) return;
     if (!L) { telaPrimeiroAcesso(email); return; }
     const ok = temAcesso(L, email) || M;
-    if (!ok) { if (started) { location.reload(); return; } telaCodigo(email, nome); return; }
+    if (!ok) { if (started) { location.reload(); return; } telaPedido(email, nome); return; }
     const isAdmin = (L.admins || []).includes(email);
     if (!started) {
       started = true;
-      detail = { db, user: { email, nome }, isAdmin, acesso: L, membros: [], codigo: '', signOut: () => A.signOut(auth), onAcesso: null };
+      detail = { db, user: { email, nome }, isAdmin, acesso: L, membros: [], solicitacoes: [], codigo: '', signOut: () => A.signOut(auth), onAcesso: null };
       window.__bandgymBackend = detail;
       window.dispatchEvent(new CustomEvent('bandgym-backend', { detail }));
       hide();
     } else { detail.acesso = L; detail.isAdmin = isAdmin; }
     if (isAdmin && !adminSubs.length) {
       adminSubs.push(F.onSnapshot(F.collection(fs, 'membros'), sn => { detail.membros = sn.docs.map(d => d.data()).sort((a, b) => (b.em || 0) - (a.em || 0)); if (detail.onAcesso) detail.onAcesso(); }, () => { }));
+      adminSubs.push(F.onSnapshot(F.collection(fs, 'solicitacoes'), sn => { detail.solicitacoes = sn.docs.map(d => d.data()).sort((a, b) => (b.em || 0) - (a.em || 0)); if (detail.onAcesso) detail.onAcesso(); }, () => { }));
       adminSubs.push(F.onSnapshot(F.doc(fs, 'acesso/codigo'), sn => { detail.codigo = sn.exists() ? (sn.data().valor || '') : ''; if (detail.onAcesso) detail.onAcesso(); }, () => { }));
     } else if (!isAdmin) offAll(adminSubs);
     if (detail.onAcesso) detail.onAcesso();
