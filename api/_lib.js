@@ -26,7 +26,12 @@ export async function usuarioDoPedido(req) {
   const { auth } = firebase();
   let u;
   try { u = await auth.verifyIdToken(tk); } catch (e) { throw Object.assign(new Error('Login inválido ou expirado'), { status: 401 }); }
-  if (!u.email || !u.email_verified) throw Object.assign(new Error('E-mail ainda não confirmado'), { status: 403 });
+  if (!u.email) throw Object.assign(new Error('Conta sem e-mail'), { status: 403 });
+  if (!u.email_verified) {
+    // O token pode ter sido emitido antes da confirmação: confere o cadastro atual no Firebase
+    const rec = await auth.getUser(u.uid).catch(() => null);
+    if (!rec || !rec.emailVerified) throw Object.assign(new Error('E-mail ainda não confirmado'), { status: 403 });
+  }
   return u;
 }
 

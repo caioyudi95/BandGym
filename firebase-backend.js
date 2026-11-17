@@ -215,7 +215,7 @@ async function telaPedido(email, nome) {
   gate.querySelector('#fb-cod-link').onclick = () => { pedidoMostrado = false; telaCodigo(email, nome); };
   const el = () => gate.querySelector('#fb-ped');
   try {
-    const tk = await auth.currentUser.getIdToken();
+    const tk = await auth.currentUser.getIdToken(true);
     const r = await fetch('/api/pedir-acesso', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tk }, body: JSON.stringify({ nome }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(j.erro || ('erro ' + r.status));
@@ -256,7 +256,8 @@ A.onAuthStateChanged(auth, user => {
   offAll(subs); offAll(adminSubs);
   if (!user) { if (started) { location.reload(); return; } telaLogin(); return; }
   if (!user.emailVerified) { telaVerificar(user); return; }
-  entrou(user);
+  // Credencial antiga (de antes da confirmação do e-mail)? Renova antes de acessar o banco.
+  user.getIdTokenResult().then(r => r.claims.email_verified ? null : user.getIdToken(true)).catch(() => null).then(() => entrou(user));
 });
 function entrou(user) {
   offAll(subs); offAll(adminSubs);
